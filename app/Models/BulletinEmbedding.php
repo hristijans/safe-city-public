@@ -17,6 +17,7 @@ class BulletinEmbedding extends Model
 
     protected $casts = [
         'embedding' => 'array',
+        'metadata' => 'array',
     ];
 
     public function bulletin(): BelongsTo

@@ -2,11 +2,8 @@
 
 namespace App\Services;
 
-use App\Contracts\Services\EmbeddingGeneratorInterface;
-use Laravel\Ai\Ai;
 use Laravel\Ai\Embeddings;
 use Laravel\Ai\Enums\Lab;
-use Prism\Prism\Enums\Provider;
 
 class EmbeddingGeneratorService
 {
