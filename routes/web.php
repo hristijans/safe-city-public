@@ -25,6 +25,8 @@ Route::middleware([
 
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
+        Route::post('/stream', [ChatController::class, 'stream'])->name('stream.new');
         Route::get('/{id}', [ChatController::class, 'show'])->name('show');
+        Route::post('/{id}/stream', [ChatController::class, 'stream'])->name('stream');
     });
 });
