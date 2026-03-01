@@ -65,10 +65,15 @@ async function send() {
             return;
         }
 
+        // Conversation ID is known before streaming starts
+        const newConversationId = response.headers.get('X-Conversation-Id');
+        if (newConversationId && !conversationId) {
+            router.replace(route('chat.show', newConversationId));
+        }
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let newConversationId = null;
 
         while (true) {
             const { done, value } = await reader.read();
@@ -85,22 +90,14 @@ async function send() {
 
                 try {
                     const event = JSON.parse(payload);
-
-                    if (event.type === 'delta') {
-                        localMessages.value[assistantIndex].content += event.text;
+                    if (event.type === 'text-delta') {
+                        localMessages.value[assistantIndex].content += event.delta;
                         scrollToBottom();
-                    } else if (event.type === 'done') {
-                        newConversationId = event.conversationId;
                     }
                 } catch {
                     // ignore malformed events
                 }
             }
-        }
-
-        // Navigate to the conversation URL if this was a new conversation
-        if (newConversationId && !conversationId) {
-            router.replace(route('chat.show', newConversationId));
         }
     } catch {
         localMessages.value[assistantIndex].content = 'Connection error. Please try again.';

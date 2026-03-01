@@ -42,7 +42,7 @@ class BulletinChatAgent implements Agent, HasTools
             SimilaritySearch::usingModel(
                 model: BulletinEmbedding::class,
                 column: 'embedding',
-                minSimilarity: 0.5,
+                minSimilarity: 0.1,
                 limit: 5,
             )->withDescription('Search the daily bulletins database for information relevant to the user\'s question.'),
         ];
