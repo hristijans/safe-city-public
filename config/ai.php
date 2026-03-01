@@ -110,7 +110,7 @@ return [
             'key' => env('OPENAI_API_KEY'),
             'models' => [
                 'embeddings' => [
-                    'default' => 'text-embedding-3-large'
+                    'default' => 'text-embedding-3-small'
                 ]
             ]
         ],

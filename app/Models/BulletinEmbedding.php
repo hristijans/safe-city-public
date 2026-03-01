@@ -24,12 +24,4 @@ class BulletinEmbedding extends Model
     {
         return $this->belongsTo(Bulletin::class);
     }
-
-    public function scopeNearestTo($query, array $embedding, int $limit = 5)
-    {
-        return $query
-            ->selectRaw('*, embedding <=> ? as distance', [json_encode($embedding)])
-            ->orderByRaw('embedding <=> ?', [json_encode($embedding)])
-            ->limit($limit);
-    }
 }

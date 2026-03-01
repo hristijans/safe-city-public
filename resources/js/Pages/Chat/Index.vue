@@ -46,11 +46,15 @@ async function send() {
         : route('chat.stream.new');
 
     try {
+        const xsrfToken = decodeURIComponent(
+            document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] ?? ''
+        );
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-XSRF-TOKEN': xsrfToken,
                 'Accept': 'text/event-stream',
             },
             body: JSON.stringify({ message: text }),
