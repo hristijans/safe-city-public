@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bulletin extends Model
 {
@@ -56,5 +57,21 @@ class Bulletin extends Model
     public static function urlExists(string $url): bool
     {
         return self::where('url', $url)->exists();
+    }
+
+    /**
+     * Get the embeddings for this bulletin
+     */
+    public function embeddings(): HasMany
+    {
+        return $this->hasMany(BulletinEmbedding::class);
+    }
+
+    /**
+     * Check if this record has embeddings
+     */
+    public function hasEmbeddings(): bool
+    {
+        return $this->embeddings()->exists();
     }
 }
