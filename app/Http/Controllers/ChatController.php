@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\AgentConversationMessages\GetConversationMessages;
+use App\Actions\AgentConversations\GetConversation;
+use App\Actions\AgentConversations\GetUserConversations;
 use App\Ai\Agents\BulletinChatAgent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Ai\Streaming\Events\TextDelta;
@@ -12,15 +14,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChatController extends Controller
 {
+    public function __construct(
+        private readonly GetUserConversations $getUserConversations,
+        private readonly GetConversation $getConversation,
+        private readonly GetConversationMessages $getConversationMessages,
+    ) {}
+
     public function index(Request $request): Response
     {
-        $conversations = DB::table('agent_conversations')
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('updated_at')
-            ->get(['id', 'title', 'updated_at']);
-
         return Inertia::render('Chat/Index', [
-            'conversations' => $conversations,
+            'conversations' => $this->getUserConversations->handle($request->user()->id),
             'conversation' => null,
             'messages' => [],
         ]);
@@ -28,25 +31,10 @@ class ChatController extends Controller
 
     public function show(Request $request, string $id): Response
     {
-        $conversation = DB::table('agent_conversations')
-            ->where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-
-        $messages = DB::table('agent_conversation_messages')
-            ->where('conversation_id', $id)
-            ->orderBy('created_at')
-            ->get(['id', 'role', 'content', 'created_at']);
-
-        $conversations = DB::table('agent_conversations')
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('updated_at')
-            ->get(['id', 'title', 'updated_at']);
-
         return Inertia::render('Chat/Index', [
-            'conversations' => $conversations,
-            'conversation' => $conversation,
-            'messages' => $messages,
+            'conversations' => $this->getUserConversations->handle($request->user()->id),
+            'conversation' => $this->getConversation->handle($id, $request->user()->id),
+            'messages' => $this->getConversationMessages->handle($id),
         ]);
     }
 
@@ -79,8 +67,6 @@ class ChatController extends Controller
                 }
             }
 
-            // After the loop, RememberConversation middleware's then() callback has fired
-            // and conversationId is now populated on the response.
             echo 'data: ' . json_encode(['type' => 'done', 'conversationId' => $streamResponse->conversationId]) . "\n\n";
 
             if (ob_get_level() > 0) {
