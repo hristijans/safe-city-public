@@ -108,6 +108,11 @@ return [
         'openai' => [
             'driver' => 'openai',
             'key' => env('OPENAI_API_KEY'),
+            'models' => [
+                'embeddings' => [
+                    'default' => 'text-embedding-3-large'
+                ]
+            ]
         ],
 
         'openrouter' => [

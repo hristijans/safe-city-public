@@ -3,6 +3,7 @@
 namespace App\Ai\Agents;
 
 use App\Models\BulletinEmbedding;
+use Laravel\Ai\Attributes\Model;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasTools;
@@ -10,9 +11,11 @@ use Laravel\Ai\Promptable;
 use Laravel\Ai\Tools\SimilaritySearch;
 use Stringable;
 
+#[Model('gpt-4-turbo-preview')]
 class BulletinChatAgent implements Agent, HasTools
 {
     use Promptable, RemembersConversations;
+
 
     public function instructions(): Stringable|string
     {
