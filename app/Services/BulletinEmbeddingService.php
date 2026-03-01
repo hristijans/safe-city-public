@@ -36,16 +36,14 @@ class BulletinEmbeddingService
         // Split text into chunks
         $chunks = $this->textProcessor->chunk($bulletin->data, self::MAX_CHUNK_LENGTH);
 
-        foreach ($chunks as $index => $chunk) {
-            // Generate embedding for this chunk
-            $embedding = $this->embeddingGenerator->generate($chunk);
+        $embeddings = $this->embeddingGenerator->generateBatch($chunks);
 
-            // Store embedding
+        foreach ($chunks as $index => $chunk) {
             BulletinEmbedding::create([
                 'bulletin_id' => $bulletin->id,
                 'chunk_index' => $index,
                 'chunk_text' => $chunk,
-                'embedding' => $embedding,
+                'embedding' => $embeddings[$index],
                 'metadata' => [
                     'url' => $bulletin->url,
                     'parsed_at' => $bulletin->parsed_at?->toIso8601String(),
@@ -54,11 +52,6 @@ class BulletinEmbeddingService
             ]);
 
             Log::info("Created embedding for Bulletin ID {$bulletin->id}, chunk {$index}");
-
-            // Small delay to avoid rate limiting
-            if ($index < count($chunks) - 1) {
-                sleep(1);
-            }
         }
 
         Log::info('Successfully generated '.count($chunks)." embedding(s) for Bulletin ID: {$bulletin->id}");
