@@ -123,7 +123,8 @@ function onKeydown(e) {
             </h2>
         </template>
 
-        <div class="flex h-[calc(100vh-8rem)]">
+        <div class="flex justify-center py-2 px-4">
+        <div class="flex w-full max-w-7xl h-[calc(100vh-6rem)]">
             <!-- Sidebar -->
             <div class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
                 <div class="p-4 border-b border-gray-200">
@@ -203,6 +204,7 @@ function onKeydown(e) {
                     <p class="mt-1 text-xs text-gray-400">Enter to send · Shift+Enter for newline</p>
                 </div>
             </div>
+        </div>
         </div>
     </AppLayout>
 </template>
