@@ -39,6 +39,17 @@ class ChatController extends Controller
         ]);
     }
 
+    public function lastUsage(Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        $row = \Illuminate\Support\Facades\DB::table('agent_conversation_messages')
+            ->where('conversation_id', $id)
+            ->where('role', 'assistant')
+            ->orderBy('created_at', 'desc')
+            ->value('usage');
+
+        return response()->json(json_decode($row ?? '{}', true));
+    }
+
     public function stream(Request $request, ?string $id = null): StreamableAgentResponse
     {
         $validated = $request->validate([

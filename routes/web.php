@@ -25,6 +25,7 @@ Route::middleware([
         Route::get('/', [ChatController::class, 'index'])->name('index');
         Route::post('/stream', [ChatController::class, 'stream'])->name('stream.new');
         Route::get('/{id}', [ChatController::class, 'show'])->name('show');
+        Route::get('/{id}/last-usage', [ChatController::class, 'lastUsage'])->name('last-usage');
         Route::post('/{id}/stream', [ChatController::class, 'stream'])->name('stream');
     });
 });

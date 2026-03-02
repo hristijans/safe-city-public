@@ -11,7 +11,11 @@ const props = defineProps({
 
 // Local message list — seeded from server props, then appended as we stream
 const localMessages = ref(
-    (props.messages ?? []).map(m => ({ role: m.role, content: m.content }))
+    (props.messages ?? []).map(m => ({
+        role: m.role,
+        content: m.content,
+        usage: m.usage ? (typeof m.usage === 'string' ? JSON.parse(m.usage) : m.usage) : null,
+    }))
 );
 
 const input = ref('');
@@ -34,9 +38,9 @@ async function send() {
     isStreaming.value = true;
 
     // Optimistically add the user message
-    localMessages.value.push({ role: 'user', content: text });
+    localMessages.value.push({ role: 'user', content: text, usage: null });
     // Placeholder for the streaming assistant message
-    localMessages.value.push({ role: 'assistant', content: '' });
+    localMessages.value.push({ role: 'assistant', content: '', usage: null });
     scrollToBottom();
 
     const assistantIndex = localMessages.value.length - 1;
@@ -44,6 +48,8 @@ async function send() {
     const url = conversationId
         ? route('chat.stream', conversationId)
         : route('chat.stream.new');
+
+    let resolvedConversationId = conversationId;
 
     try {
         const xsrfToken = decodeURIComponent(
@@ -68,6 +74,7 @@ async function send() {
         // Conversation ID is known before streaming starts
         const newConversationId = response.headers.get('X-Conversation-Id');
         if (newConversationId && !conversationId) {
+            resolvedConversationId = newConversationId;
             router.replace(route('chat.show', newConversationId));
         }
 
@@ -104,6 +111,19 @@ async function send() {
     } finally {
         isStreaming.value = false;
         scrollToBottom();
+    }
+
+    // Fetch token usage for the assistant reply we just received
+    if (resolvedConversationId) {
+        try {
+            const usageRes = await fetch(route('chat.last-usage', resolvedConversationId));
+            if (usageRes.ok) {
+                const usage = await usageRes.json();
+                localMessages.value[assistantIndex].usage = usage;
+            }
+        } catch {
+            // non-critical — ignore
+        }
     }
 }
 
@@ -165,8 +185,8 @@ function onKeydown(e) {
                     <div
                         v-for="(msg, i) in localMessages"
                         :key="i"
-                        class="flex"
-                        :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
+                        class="flex flex-col"
+                        :class="msg.role === 'user' ? 'items-end' : 'items-start'"
                     >
                         <div
                             class="max-w-xl px-4 py-2 rounded-lg text-sm whitespace-pre-wrap"
@@ -178,6 +198,12 @@ function onKeydown(e) {
                                 Thinking…
                             </span>
                             <span v-else>{{ msg.content }}</span>
+                        </div>
+                        <div
+                            v-if="msg.usage && (msg.usage.prompt_tokens || msg.usage.completion_tokens)"
+                            class="mt-1 text-xs text-gray-400"
+                        >
+                            {{ msg.usage.prompt_tokens }} in · {{ msg.usage.completion_tokens }} out · {{ msg.usage.prompt_tokens + msg.usage.completion_tokens }} total tokens
                         </div>
                     </div>
                 </div>
